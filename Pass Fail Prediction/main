@@ -1,0 +1,168 @@
+# Student Pass/Fail Prediction
+
+# Import Libraries
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report
+)
+
+# -----------------------------------
+# 1. Load Dataset
+# -----------------------------------
+
+df = pd.read_csv("students.csv")
+
+print("Student Dataset:")
+print(df.head())
+
+print("\nDataset Shape:", df.shape)
+
+# -----------------------------------
+# 2. Features and Target
+# -----------------------------------
+
+X = df[["Attendance", "Study_Hours", "Marks"]]
+y = df["Pass_Fail"]
+
+# -----------------------------------
+# 3. Train and Test Data
+# -----------------------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+print("\nTraining Data:", len(X_train))
+print("Testing Data:", len(X_test))
+
+# -----------------------------------
+# 4. Logistic Regression
+# -----------------------------------
+
+logistic_model = LogisticRegression()
+
+logistic_model.fit(X_train, y_train)
+
+logistic_pred = logistic_model.predict(X_test)
+
+logistic_accuracy = accuracy_score(y_test, logistic_pred)
+
+# -----------------------------------
+# 5. Random Forest
+# -----------------------------------
+
+forest_model = RandomForestClassifier(
+    n_estimators=300,
+    random_state=42
+)
+
+forest_model.fit(X_train, y_train)
+
+forest_pred = forest_model.predict(X_test)
+
+forest_accuracy = accuracy_score(y_test, forest_pred)
+
+# -----------------------------------
+# 6. Compare Models
+# -----------------------------------
+
+print("\n-----------------------------")
+print("MODEL ACCURACY")
+print("-----------------------------")
+
+print("Logistic Regression:",
+      round(logistic_accuracy * 100, 2), "%")
+
+print("Random Forest:",
+      round(forest_accuracy * 100, 2), "%")
+
+# Select Best Model
+if logistic_accuracy >= forest_accuracy:
+    best_model = logistic_model
+    best_pred = logistic_pred
+    print("\nBest Model: Logistic Regression")
+else:
+    best_model = forest_model
+    best_pred = forest_pred
+    print("\nBest Model: Random Forest")
+
+# -----------------------------------
+# 7. Evaluation
+# -----------------------------------
+
+print("\n-----------------------------")
+print("MODEL EVALUATION")
+print("-----------------------------")
+
+print("Accuracy:",
+      round(accuracy_score(y_test, best_pred) * 100, 2), "%")
+
+print("Precision:",
+      round(precision_score(y_test, best_pred) * 100, 2), "%")
+
+print("Recall:",
+      round(recall_score(y_test, best_pred) * 100, 2), "%")
+
+print("F1 Score:",
+      round(f1_score(y_test, best_pred) * 100, 2), "%")
+
+# -----------------------------------
+# 8. Confusion Matrix
+# -----------------------------------
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, best_pred))
+
+# -----------------------------------
+# 9. Classification Report
+# -----------------------------------
+
+print("\nClassification Report:")
+print(classification_report(
+    y_test,
+    best_pred,
+    target_names=["Fail", "Pass"]
+))
+
+# -----------------------------------
+# 10. Custom Student Prediction
+# -----------------------------------
+
+print("\n-----------------------------")
+print("CUSTOM STUDENT PREDICTION")
+print("-----------------------------")
+
+attendance = 85
+study_hours = 6
+marks = 80
+
+student = pd.DataFrame(
+    [[attendance, study_hours, marks]],
+    columns=["Attendance", "Study_Hours", "Marks"]
+)
+
+prediction = best_model.predict(student)
+
+if prediction[0] == 1:
+    print("Prediction: PASS")
+else:
+    print("Prediction: FAIL")
+
+print("\nStudent Details:")
+print("Attendance:", attendance, "%")
+print("Study Hours:", study_hours)
+print("Marks:", marks)
